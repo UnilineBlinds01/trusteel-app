@@ -129,3 +129,82 @@ subtotal = (
     panel_total + beam_total + hat_total +
     support_total + weather_total +
     hinge_total + cover_total + bracket_total
+)
+
+discount = subtotal * (discount_pct / 100)
+final_total = subtotal - discount
+
+# -------------------------
+# AUTO CALCULATED SECTION
+# -------------------------
+st.markdown('<div class="section">', unsafe_allow_html=True)
+st.header("📊 Auto-Calculated")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown(f'<div class="card">Panels<br><b>{num_panels}</b></div>', unsafe_allow_html=True)
+
+with col2:
+    st.markdown(f'<div class="card">Panel Length<br><b>{int(panel_length*1000)} mm</b></div>', unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f'<div class="card">Beams<br><b>{beam_qty}</b></div>', unsafe_allow_html=True)
+
+col4, col5, col6 = st.columns(3)
+
+with col4:
+    st.markdown(f'<div class="card">Hat Sections<br><b>{hat_qty}</b></div>', unsafe_allow_html=True)
+
+with col5:
+    st.markdown(f'<div class="card">Supports<br><b>{support_qty}</b></div>', unsafe_allow_html=True)
+
+with col6:
+    st.markdown(f'<div class="card">Est Total<br><b>${final_total:.2f}</b></div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# -------------------------
+# MATERIAL LIST (LIKE YOUR SECOND SCREEN)
+# -------------------------
+st.markdown('<div class="section">', unsafe_allow_html=True)
+st.header("📦 Materials")
+
+materials = [
+    ("6.3032", "Skin Panels", num_panels, panel_total),
+    ("6.344102", "Z Beam", beam_qty, beam_total),
+    ("6.35002", "Hat Section", hat_qty, hat_total),
+    ("6.35702", "Support Arm", support_qty, support_total),
+    ("6.32302", "Weather Strip", 2, weather_total),
+    ("6.33312", "Hinge Beam", 2, hinge_total),
+    ("6.33502", "Cover Strip", 3, cover_total),
+    ("6.37302", "Support Bracket", support_qty, bracket_total),
+]
+
+for part, desc, qty, cost in materials:
+    st.markdown(f"""
+    **{part} — {desc}**  
+    Qty: {qty}  
+    Cost: ${cost:.2f}
+    """)
+    st.divider()
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# -------------------------
+# TOTAL
+# -------------------------
+st.markdown('<div class="section">', unsafe_allow_html=True)
+st.header("🏷 Price Summary")
+
+st.write(f"Subtotal: ${subtotal:.2f}")
+st.write(f"Trade Discount ({discount_pct}%): -${discount:.2f}")
+
+st.markdown(f"## <span class='orange'>TOTAL: ${final_total:.2f}</span>", unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
+
+# -------------------------
+# CTA BUTTON
+# -------------------------
+st.button("View Full Quote ➜")
