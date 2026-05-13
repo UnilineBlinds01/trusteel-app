@@ -1,42 +1,69 @@
 import streamlit as st
-from datetime import date
 
-st.set_page_config(page_title="TRU-STEEL Costing", layout="wide")
+st.set_page_config(layout="wide")
 
 # -------------------------
-# CUSTOM STYLING (DARK UI)
+# GLOBAL DARK STYLE
 # -------------------------
 st.markdown("""
 <style>
+
 body {
-    background-color: #0e0e0e;
+    background-color: #0b0b0b;
     color: white;
 }
+
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1rem;
 }
+
+/* Sections */
 .section {
-    background-color: #1a1a1a;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    background: linear-gradient(145deg, #1a1a1a, #111);
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
 }
+
+/* Inputs */
+input {
+    background-color: #333 !important;
+    color: white !important;
+}
+
+/* Cards */
 .card {
-    background-color: #2a2a2a;
-    padding: 15px;
-    border-radius: 10px;
+    background: #222;
+    border-radius: 12px;
+    padding: 20px;
     text-align: center;
+    border: 1px solid #333;
 }
+
+/* Selected */
+.selected {
+    border: 2px solid #ff6a00;
+    background-color: #2a1a10;
+}
+
+/* Buttons */
+.stButton button {
+    background: #ff6a00;
+    color: white;
+    border-radius: 10px;
+    height: 55px;
+    font-size: 18px;
+}
+
 .orange {
     color: #ff6a00;
 }
-.stButton>button {
-    background-color: #ff6a00;
-    color: white;
-    border-radius: 8px;
-    height: 3em;
-    width: 100%;
+
+.big-title {
+    font-size: 34px;
+    font-weight: bold;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -44,15 +71,15 @@ body {
 # HEADER
 # -------------------------
 st.markdown("""
-## TRU-STEEL  
-# Canopy Awning Costing
-""")
+<span style='color:#888;'>TRU-STEEL</span>
+<div class='big-title'>Canopy Awning Costing</div>
+""", unsafe_allow_html=True)
 
 # -------------------------
-# DIMENSIONS
+# DIMENSIONS SECTION
 # -------------------------
-st.markdown('<div class="section">', unsafe_allow_html=True)
-st.header("📏 Dimensions")
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+st.markdown("## 📏 Dimensions")
 
 col1, col2 = st.columns(2)
 
@@ -64,13 +91,13 @@ with col2:
 
 height = st.number_input("Height / Rise (mm)", value=400)
 
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
-# CONFIGURATION
+# CONFIG SECTION (VISUAL)
 # -------------------------
-st.markdown('<div class="section">', unsafe_allow_html=True)
-st.header("⚙️ Configuration")
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+st.markdown("## ⚙️ Configuration")
 
 col1, col2 = st.columns(2)
 
@@ -80,131 +107,74 @@ with col1:
 with col2:
     beam = st.radio("Beam Type", ["Z Beam", "Small C"])
 
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
 # PRICING
 # -------------------------
-st.markdown('<div class="section">', unsafe_allow_html=True)
-st.header("💰 Pricing")
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+st.markdown("## 💰 Pricing")
 
-discount_pct = st.number_input("Trade Discount (%)", value=30)
+discount = st.number_input("Trade Discount (%)", value=30)
 
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
-# CALCULATIONS (FROM EXCEL)
+# CALCULATIONS
 # -------------------------
-panel_rate = 26.401
-z_beam_rate = 8.904
-hat_rate = 34.21
-support_rate = 7.422
-weather_rate = 16.628
-hinge_rate = 17.502
-cover_rate = 5.155
-bracket_rate = 2.94
-
 width_m = width / 1000
 projection_m = projection / 1000
 
-num_panels = int(width / 120)
-panel_length = projection_m + 0.05
-panel_total = num_panels * panel_length * panel_rate
-
-beam_qty = int(width / 400)
-beam_total = beam_qty * 5 * z_beam_rate
-
-hat_qty = max(2, int(width / 1500))
-hat_total = hat_qty * 5 * hat_rate
-
-support_qty = max(2, int(width / 1000))
-support_total = support_qty * (height / 1000) * support_rate
-
-weather_total = 2 * weather_rate
-hinge_total = 2 * hinge_rate
-cover_total = 3 * cover_rate
-bracket_total = support_qty * bracket_rate
+panels = int(width / 120)
+panel_length = int((projection_m + 0.05) * 1000)
+beams = int(width / 400)
+hats = max(2, int(width / 1500))
+supports = max(2, int(width / 1000))
 
 subtotal = (
-    panel_total + beam_total + hat_total +
-    support_total + weather_total +
-    hinge_total + cover_total + bracket_total
+    panels * 26.401 +
+    beams * 8.904 * 5 +
+    hats * 34.21 * 5 +
+    supports * (height/1000) * 7.422
 )
 
-discount = subtotal * (discount_pct / 100)
-final_total = subtotal - discount
+discount_amt = subtotal * (discount / 100)
+total = subtotal - discount_amt
 
 # -------------------------
-# AUTO CALCULATED SECTION
+# AUTO-CALCULATED BLOCKS
 # -------------------------
-st.markdown('<div class="section">', unsafe_allow_html=True)
-st.header("📊 Auto-Calculated")
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+st.markdown("## 📊 Auto-Calculated")
 
-col1, col2, col3 = st.columns(3)
+c1, c2, c3 = st.columns(3)
+c4, c5, c6 = st.columns(3)
 
-with col1:
-    st.markdown(f'<div class="card">Panels<br><b>{num_panels}</b></div>', unsafe_allow_html=True)
+c1.markdown(f"<div class='card'>Panels<br><b>{panels}</b></div>", unsafe_allow_html=True)
+c2.markdown(f"<div class='card'>Panel Length<br><b>{panel_length} mm</b></div>", unsafe_allow_html=True)
+c3.markdown(f"<div class='card'>Z/C Beams<br><b>{beams}</b></div>", unsafe_allow_html=True)
 
-with col2:
-    st.markdown(f'<div class="card">Panel Length<br><b>{int(panel_length*1000)} mm</b></div>', unsafe_allow_html=True)
+c4.markdown(f"<div class='card'>Hat Sections<br><b>{hats}</b></div>", unsafe_allow_html=True)
+c5.markdown(f"<div class='card'>Supports<br><b>{supports}</b></div>", unsafe_allow_html=True)
+c6.markdown(f"<div class='card'>Est Total<br><b>${total:.2f}</b></div>", unsafe_allow_html=True)
 
-with col3:
-    st.markdown(f'<div class="card">Beams<br><b>{beam_qty}</b></div>', unsafe_allow_html=True)
-
-col4, col5, col6 = st.columns(3)
-
-with col4:
-    st.markdown(f'<div class="card">Hat Sections<br><b>{hat_qty}</b></div>', unsafe_allow_html=True)
-
-with col5:
-    st.markdown(f'<div class="card">Supports<br><b>{support_qty}</b></div>', unsafe_allow_html=True)
-
-with col6:
-    st.markdown(f'<div class="card">Est Total<br><b>${final_total:.2f}</b></div>', unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
-# MATERIAL LIST (LIKE YOUR SECOND SCREEN)
+# PRICE SUMMARY
 # -------------------------
-st.markdown('<div class="section">', unsafe_allow_html=True)
-st.header("📦 Materials")
-
-materials = [
-    ("6.3032", "Skin Panels", num_panels, panel_total),
-    ("6.344102", "Z Beam", beam_qty, beam_total),
-    ("6.35002", "Hat Section", hat_qty, hat_total),
-    ("6.35702", "Support Arm", support_qty, support_total),
-    ("6.32302", "Weather Strip", 2, weather_total),
-    ("6.33312", "Hinge Beam", 2, hinge_total),
-    ("6.33502", "Cover Strip", 3, cover_total),
-    ("6.37302", "Support Bracket", support_qty, bracket_total),
-]
-
-for part, desc, qty, cost in materials:
-    st.markdown(f"""
-    **{part} — {desc}**  
-    Qty: {qty}  
-    Cost: ${cost:.2f}
-    """)
-    st.divider()
-
-st.markdown('</div>', unsafe_allow_html=True)
-
-# -------------------------
-# TOTAL
-# -------------------------
-st.markdown('<div class="section">', unsafe_allow_html=True)
-st.header("🏷 Price Summary")
+st.markdown("<div class='section'>", unsafe_allow_html=True)
+st.markdown("## 🏷 Price Summary")
 
 st.write(f"Subtotal: ${subtotal:.2f}")
-st.write(f"Trade Discount ({discount_pct}%): -${discount:.2f}")
+st.write(f"Discount ({discount}%): -${discount_amt:.2f}")
 
-st.markdown(f"## <span class='orange'>TOTAL: ${final_total:.2f}</span>", unsafe_allow_html=True)
+st.markdown(f"### <span class='orange'>TOTAL: ${total:.2f}</span>", unsafe_allow_html=True)
 
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
 # CTA BUTTON
 # -------------------------
 st.button("View Full Quote ➜")
+``
