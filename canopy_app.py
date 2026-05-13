@@ -1,150 +1,108 @@
 import streamlit as st
+from datetime import date
 
-st.set_page_config(layout="wide")
-
-# -------------------------
-# DARK UI STYLE
-# -------------------------
-st.markdown("""
-<style>
-body {
-    background-color: #0b0b0b;
-    color: white;
-}
-.block-container {
-    padding-top: 1rem;
-}
-
-/* Sections */
-.section {
-    background: linear-gradient(145deg, #1a1a1a, #111);
-    padding: 25px;
-    border-radius: 15px;
-    margin-bottom: 25px;
-}
-
-/* Cards */
-.card {
-    background: #222;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    border: 1px solid #333;
-}
-
-/* Buttons */
-.stButton button {
-    background: #ff6a00;
-    color: white;
-    border-radius: 10px;
-    height: 55px;
-    font-size: 18px;
-}
-
-.orange {
-    color: #ff6a00;
-}
-</style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="TRU-STEEL Quote Tool", layout="wide")
 
 # -------------------------
 # HEADER
 # -------------------------
-st.markdown("""
-<span style='color:#888;'>TRU-STEEL</span>
-<h1>Canopy Awning Costing</h1>
-""", unsafe_allow_html=True)
+st.title("TRU-STEEL Canopy Quote Tool")
 
 # -------------------------
-# DIMENSIONS
+# CUSTOMER DETAILS
 # -------------------------
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-st.subheader("Dimensions")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    width = st.number_input("Width (mm)", value=2000)
-
-with col2:
-    projection = st.number_input("Projection (mm)", value=1500)
-
-height = st.number_input("Height / Rise (mm)", value=400)
-
-st.markdown("</div>", unsafe_allow_html=True)
+st.sidebar.header("Customer Details")
+customer = st.sidebar.text_input("Customer Name")
+address = st.sidebar.text_input("Job Address")
+quote_date = st.sidebar.date_input("Date", date.today())
 
 # -------------------------
-# CONFIGURATION
+# INPUTS (from your Excel)
 # -------------------------
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-st.subheader("Configuration")
+st.sidebar.header("Project Inputs")
 
-col1, col2 = st.columns(2)
+width = st.sidebar.number_input("Width (mm)", value=2000)
+projection = st.sidebar.number_input("Projection (mm)", value=1500)
+height = st.sidebar.number_input("Height (mm)", value=400)
 
-with col1:
-    support = st.radio("Support Type", ["Wall", "Ground"])
+support_type = st.sidebar.selectbox("Support Location", ["Wall", "Ground"])
+beam_type = st.sidebar.selectbox("Beam Type", ["Z Beam", "C Channel"])
 
-with col2:
-    beam = st.radio("Beam Type", ["Z Beam", "Small C"])
-
-st.markdown("</div>", unsafe_allow_html=True)
+discount_pct = st.sidebar.slider("Discount (%)", 0, 50, 30)
 
 # -------------------------
-# PRICING
+# CONSTANTS (Excel values)
 # -------------------------
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-st.subheader("Pricing")
-
-discount_pct = st.number_input("Trade Discount (%)", value=30)
-
-st.markdown("</div>", unsafe_allow_html=True)
+panel_rate = 26.401
+z_beam_rate = 8.904
+hat_rate = 34.21
+support_rate = 7.422
 
 # -------------------------
-# CALCULATIONS
+# CALCULATIONS (matching your sheet logic)
 # -------------------------
 width_m = width / 1000
 projection_m = projection / 1000
 
-panels = int(width / 120)
-panel_length = int((projection_m + 0.05) * 1000)
+# Panels
+panel_length = projection_m + 0.05
+num_panels = max(1, int(width / 120))
+panel_total = num_panels * panel_length * panel_rate
 
-beams = int(width / 400)
-hats = max(2, int(width / 1500))
-supports = max(2, int(width / 1000))
+# Beams
+beam_qty = max(1, int(width / 400))
+beam_rate = z_beam_rate
+beam_total = beam_qty * 5 * beam_rate
 
-# COSTS
-subtotal = (
-    panels * 26.401 +
-    beams * 8.904 * 5 +
-    hats * 34.21 * 5 +
-    supports * (height / 1000) * 7.422 +
-    2 * 16.628 +
-    2 * 17.502 +
-    3 * 5.155 +
-    supports * 2.94
-)
+# Hat sections
+hat_qty = max(2, int(width / 1500))
+hat_total = hat_qty * 5 * hat_rate
 
+# Supports
+support_qty = max(2, int(width / 1000))
+support_total = support_qty * (height / 1000) * support_rate
+
+# Subtotal
+subtotal = panel_total + beam_total + hat_total + support_total
+
+# Discount
 discount = subtotal * (discount_pct / 100)
-total = subtotal - discount
+final_total = subtotal - discount
 
 # -------------------------
-# AUTO CALCULATED
+# OUTPUT
 # -------------------------
-st.markdown("<div class='section'>", unsafe_allow_html=True)
-st.subheader("Auto-Calculated")
+st.header("Quote")
 
-c1, c2, c3 = st.columns(3)
-c4, c5, c6 = st.columns(3)
+col1, col2 = st.columns(2)
 
-c1.markdown(f"<div class='card'>Panels<br><b>{panels}</b></div>", unsafe_allow_html=True)
-c2.markdown(f"<div class='card'>Panel Length<br><b>{panel_length} mm</b></div>", unsafe_allow_html=True)
-c3.markdown(f"<div class='card'>Z/C Beams<br><b>{beams}</b></div>", unsafe_allow_html=True)
+with col1:
+    st.subheader("Customer")
+    st.write(f"Name: {customer}")
+    st.write(f"Address: {address}")
+    st.write(f"Date: {quote_date}")
 
-c4.markdown(f"<div class='card'>Hat Sections<br><b>{hats}</b></div>", unsafe_allow_html=True)
-c5.markdown(f"<div class='card'>Supports<br><b>{supports}</b></div>", unsafe_allow_html=True)
-c6.markdown(f"<div class='card'>Est Total<br><b>${total:.2f}</b></div>", unsafe_allow_html=True)
+with col2:
+    st.subheader("Project")
+    st.write(f"Width: {width} mm")
+    st.write(f"Projection: {projection} mm")
+    st.write(f"Height: {height} mm")
+    st.write(f"Beam: {beam_type}")
 
-st.markdown("</div>", unsafe_allow_html=True)
+st.divider()
 
-# -------------------------
-# MATERIAL LIST
+st.subheader("Material Breakdown")
+
+st.write(f"Panels ({num_panels}): ${panel_total:.2f}")
+st.write(f"Beams ({beam_qty}): ${beam_total:.2f}")
+st.write(f"Hat Sections ({hat_qty}): ${hat_total:.2f}")
+st.write(f"Supports ({support_qty}): ${support_total:.2f}")
+
+st.divider()
+
+st.subheader("Totals")
+
+st.write(f"Subtotal: ${subtotal:.2f}")
+st.write(f"Discount: -${discount:.2f}")
+
+st.success(f"FINAL PRICE: ${final_total:.2f} (Excl Labour)")
